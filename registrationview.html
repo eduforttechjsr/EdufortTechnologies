@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payout Dashboard - EduFort Technologies</title>
+  <style>
+    :root {
+      --blue: #1e3a8a;
+      --accent: #ff7a00;
+      --muted: #64748b;
+      --card: #ffffff;
+      --bg: #f6f8fb;
+      --shadow: 0 8px 30px rgba(16,24,40,0.08);
+      --radius: 12px;
+      --green: #10b981;
+      --red: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+      background: var(--bg);
+      color: #0f172a;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 1200px; margin: 32px auto; padding: 20px; }
+    header.top { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+    .brand { display: flex; gap: 12px; align-items: center; }
+    h1 { font-size: 20px; }
+    p.lead { color: var(--muted); font-size: 14px; }
+    .controls { margin-top: 18px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: space-between; }
+    .search { display: flex; align-items: center; gap: 8px; background: #fff; padding: 8px 12px; border-radius: 50px; box-shadow: var(--shadow); }
+    .search input { border: 0; outline: none; font-size: 14px; }
+    select, button { padding: 10px 14px; border-radius: 50px; border: 0; background: var(--card); box-shadow: var(--shadow); cursor: pointer; font-weight: 600; }
+    .btn-primary { background: linear-gradient(45deg, var(--blue), #2f5fd0); color: #fff; }
+    .btn-accent { background: var(--accent); color: #fff; }
+    .btn-green { background: var(--green); color: #fff; }
+    .btn-red { background: var(--red); color: #fff; }
+    .card { margin-top: 18px; background: var(--card); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead th { background: #f8fafc; padding: 12px 10px; text-align: center; vertical-align: middle; color: var(--muted); font-weight: 700; border-bottom: 1px solid #eef2f7; }
+    tbody td { padding: 12px 10px; border-bottom: 1px solid #f1f5f9; text-align: center; vertical-align: middle; }
+    .tag { display: inline-block; padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 13px; color: #fff; }
+    .tag.pending { background: #f59e0b; }
+    .tag.paid { background: #10b981; }
+    .tag.rejected { background: #ef4444; }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: var(--radius);
+      max-width: 500px;
+      width: 90%;
+      box-shadow: var(--shadow);
+    }
+    .modal-content h2 {
+      margin-bottom: 10px;
+      font-size: 20px;
+      color: var(--blue);
+    }
+    .modal-content p { margin-bottom: 8px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 15px; justify-content: flex-end; }
+
+
+
+
+/* ========== RESET ========== */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height:100%; }
+    body { font-family: Arial, Helvetica, sans-serif; color:#0f172a; background:#ffffff; }
+    a { color:inherit; text-decoration:none; }
+    img { max-width:100%; display:block; }
+
+    /* ========== UTIL ========== */
+    .wrap { max-width: 1600px; margin: 0 auto; padding: 0 20px; }
+    .section { padding: 64px 0; }
+    .alt { background:#f8fafc; }
+    .muted { color:#64748b; }
+    .button, .btn { display:inline-block; padding:10px 16px; border-radius:8px; background:#2563eb; color:#fff; font-weight:600; }
+    .button:hover, .btn:hover { background:#1e40af; }
+    .btn.secondary { background:#0ea5e9; }
+    .btn.secondary:hover { background:#0369a1; }
+
+    /* ========== TOP MARQUEE ========== */
+    .top-marquee { background:#1e3a8a; color:#fff; font-size:14px; }
+    .top-marquee marquee { padding:6px 0; }
+
+    /* ========== HEADER / NAV ========== */
+    header.site-header { position: sticky; top: 0; z-index: 1000; background:#ffffffcc; backdrop-filter: blur(6px); box-shadow: 0 2px 12px rgba(15,23,42,.08); }
+    .navbar { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 0; }
+    .brand { display:flex; align-items:center; gap:10px; }
+    .brand-img { width:48px; height:48px; border-radius:50%; object-fit:cover; }
+    .brand-name { font-weight:800; letter-spacing:.2px; }
+    .brand-tagline { font-size:12px; color:#475569; }
+
+    /* center nav with flex grow on middle, button right */
+    .nav-holder { display:flex; align-items:center; gap:16px; flex:1; }
+    .spacer { flex:1; } /* pushes nav to center nicely */
+
+    nav.main-menu ul { list-style:none; display:flex; align-items:center; gap:6px; }
+    nav.main-menu > ul > li > a { padding:10px 12px; border-radius:8px; font-weight:600; color:#0f172a; }
+    nav.main-menu > ul > li > a:hover { background:#eef2ff; color:#1e3a8a; }
+
+    /* book demo desktop */
+    .book-demo { margin-left:auto; }
+    .book-demo .demo-btn { background:#ef4444; }
+    .book-demo .demo-btn:hover { background:#b91c1c; }
+
+    /* ========== DROPDOWN ========== */
+    .has-dropdown { position:relative; }
+    .dropdown {
+      position:absolute; top: calc(100% + 8px); left:0; min-width:220px;
+      background:#fff; border:1px solid #e2e8f0; border-radius:12px;
+      box-shadow: 0 12px 24px rgba(2,6,23,.12);
+      padding:8px; display:none;
+    }
+    .dropdown li a { display:block; padding:10px 12px; border-radius:8px; color:#0f172a; }
+    .dropdown li a:hover { background:#f1f5f9; }
+    /* show on hover (desktop) */
+    @media (min-width: 769px) {
+      .has-dropdown:hover .dropdown { display:block; }
+    }
+
+    /* ========== MOBILE NAV ========== */
+    #nav-toggle { display:none; border:none; background:#e2e8f0; font-size:22px; padding:8px 12px; border-radius:8px; }
+    @media (max-width: 768px) {
+      #nav-toggle { display:block; }
+      .spacer { display:none; }
+      .book-demo { display:none; } /* use menu item instead */
+      nav.main-menu ul { flex-direction:column; align-items:stretch; gap:0; display:none; width:100%; background:#fff; border:1px solid #e2e8f0; border-radius:12px; margin-top:10px; overflow:hidden; }
+      nav.main-menu ul.show { display:flex; }
+      nav.main-menu > ul > li > a { padding:14px 16px; border-radius:0; border-bottom:1px solid #e2e8f0; }
+      nav.main-menu > ul > li:last-child > a { border-bottom:none; }
+      /* dropdown on mobile opens inline */
+      .dropdown { position:static; display:none; border:none; box-shadow:none; padding:0; border-radius:0; }
+      .has-dropdown.active .dropdown { display:block; }
+      .dropdown li a { padding:12px 18px; border-bottom:1px dashed #e2e8f0; }
+      .dropdown li:last-child a { border-bottom:none; }
+    }
+
+    /* ========== HERO ========== */
+    .hero { background: linear-gradient(120deg,#1e3a8a 0%, #3b82f6 50%, #0ea5e9 100%); color:#fff;}
+    .hero-grid { display:grid; grid-template-columns: 1.2fr 1fr; align-items:center; gap:30px; }
+    .hero h1 { font-size:38px; line-height:1.2; margin-bottom:12px; }
+    .hero p.lead { font-size:16px; opacity:.95; }
+    .hero-action { margin-top:18px; display:flex; gap:12px; flex-wrap:wrap; }
+    .hero .btn.primary { background:#22c55e; }
+    .hero .btn.primary:hover { background:#16a34a; }
+    .hero-card { border-radius:16px; overflow:hidden; box-shadow:0 16px 36px rgba(2,6,23,.25); }
+    .hero-img { width:100%; height:100%; object-fit:cover; min-height:260px; }
+
+    @media (max-width: 980px) {
+      .hero-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ========== GENERIC CARDS ========== */
+    .cards { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; }
+    .card {
+      background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:18px;
+      box-shadow: 0 6px 16px rgba(2,6,23,.06);
+      flex: 1 1 300px; max-width: 380px;
+    }
+    .card h2 { font-size:20px; margin:8px 0; }
+    .card p { color:#334155; }
+    .button.btn-right { float:right; margin-top:8px; }
+
+    /* ========== STACK / LISTS ========== */
+    .stack { display:grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap:12px; }
+    .stack li { background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:12px; box-shadow:0 4px 10px rgba(2,6,23,.05); }
+
+    /* ========== PRICING ========== */
+    .pricing-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(320px,1fr)); gap:20px; }
+    .pricing-card { display:flex; gap:16px; border:1px solid #e2e8f0; background:#fff; border-radius:14px; padding:18px; box-shadow:0 6px 16px rgba(2,6,23,.06); }
+    .pricing-icon { width:96px; height:96px; border-radius:12px; object-fit:cover; }
+    .pricing-text h2 { margin-bottom:6px; }
+
+    /* ========== TEAM ========== */
+    .team-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap:16px; }
+    .member { text-align:center; background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:16px; box-shadow:0 6px 16px rgba(2,6,23,.06); }
+    .member img { width:96px; height:96px; border-radius:50%; margin:0 auto 10px; object-fit:cover; }
+
+    /* ========== TESTIMONIALS ========== */
+    .testimonials { display:grid; gap:12px; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); }
+    .testimonials blockquote { background:#fff; border-left:4px solid #1e3a8a; border-radius:10px; padding:12px 14px; color:#0f172a; box-shadow:0 4px 12px rgba(2,6,23,.06); }
+
+    /* ========== CONTACT ========== */
+    .contact-grid { display:grid; grid-template-columns: 1.2fr 1fr; gap:10px; }
+    .contact-form { display:grid; gap:10px; }
+    .contact-form input, .contact-form textarea {
+      padding:8px 14px; border:1px solid #cbd5e1; border-radius:10px; font: inherit;
+    }
+    .contact-form textarea { min-height:200px; resize:vertical; }
+    .contact-info { background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:16px; box-shadow:0 6px 16px rgba(2,6,23,.06); }
+    @media (max-width: 900px) {
+      .contact-grid { grid-template-columns:1fr; }
+    }
+
+    /* ========== FOOTER ========== */
+    footer.custom-footer { background:#0b1220; color:#cbd5e1; }
+    .footer-wrap { display:grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap:24px; }
+    .footer-logo { width:56px; height:56px; border-radius:50%; margin-bottom:8px; }
+    .footer-col ul { list-style:none; display:grid; gap:8px; }
+    .footer-col ul a { color:#cbd5e1; }
+    .footer-bottom { border-top:1px solid #1f2937; margin-top:16px; padding-top:14px; text-align:center; font-size:14px; }
+    .map-col iframe { width:100%; height:160px; border-radius:10px; border:0; }
+    @media (max-width: 980px) {
+      .footer-wrap { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .footer-wrap { grid-template-columns: 1fr; }
+    }
+
+/* DROPDOWN FIX */
+.main-menu ul li ul.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  display: none;
+  min-width: 200px;   /* dropdown की चौड़ाई */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  border-radius: 6px;
+  flex-direction: column;   /* vertical list */
+  padding: 8px 0;
+  z-index: 1000;
+}
+
+.main-menu ul li:hover ul.dropdown {
+  display: flex;   /* अब flex column में दिखेगा */
+}
+
+.main-menu ul li ul.dropdown li {
+  width: 100%;
+}
+
+.main-menu ul li ul.dropdown li a {
+  padding: 8px 14px;
+  display: block;
+  color: #000;
+  text-decoration: none;
+}
+
+.main-menu ul li ul.dropdown li a:hover {
+  background: #f5f5f5;
+}
+
+/* Hide duplicate Book Demo properly */
+.desktop-demo {
+  display: block;
+}
+
+.mobile-demo {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .desktop-demo {
+    display: none;
+  }
+  .mobile-demo {
+    display: block;
+  }
+}
+
+
+
+/* Universal Button Style */
+.btn,
+.book-demo a,
+.mobile-demo a,
+button,
+input[type="submit"] {
+  display: inline-block;
+  padding: 12px 28px;
+  border-radius: 25px;       /* rounded pill shape */
+  background: linear-gradient(45deg, #4F2FD0, #2F5FD0);
+  color: #fff;
+  font-weight: bold;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  border: none;
+  cursor: pointer;
+}
+
+
+/* Hover Effect */
+.btn:hover,
+.book-demo a:hover,
+.mobile-demo a:hover,
+button:hover,
+input[type="submit"]:hover {
+  background: linear-gradient(45deg, #ee0979, #ff6a00);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+  color: #fff;
+}
+
+
+
+.hero img {
+  max-width: 300px;   /* image ki max width fix karein */
+  width: 100%;        /* responsive banane ke liye */
+  height: auto;       /* aspect ratio maintain karega */
+  display: block;
+  margin: 20px auto;  /* center alignment */
+}
+
+
+/* About Us Section */
+/* About Us Section */
+#about,
+#services,
+#pricing,
+#commission,
+#earn-types,
+#promise,
+#team,
+#investor,
+#testimonial,
+#contact {
+  text-align: center;        /* पूरा content center होगा */
+  padding: 60px 20px;        /* spacing */
+  
+}
+
+#about h1, 
+#about h2,
+#services h1,
+#pricing h1,
+#commission h1,
+#earn-types h1,
+#promise h1,
+#team h1,
+#investor h1,
+#contact h1 {
+  font-size: 36px;           /* heading बड़ा */
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #1e3a8a;            /* blue heading */
+  text-transform: uppercase; /* capital letters */
+}
+
+#contact h3 {
+  font-size: 25px;           /* heading बड़ा */
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #1e3a8a;            /* blue heading */
+  text-transform: uppercase; /* capital letters */
+  text-align: left;
+}
+
+#about p,
+#services p,
+#pricing p,
+#registration p,
+#commission p,
+#earn-types li,
+#promise li,
+#contact p {
+  font-size: 18px;           /* text थोड़ा बड़ा */
+  line-height: 1.8;          /* spacing बेहतर */
+  max-width: 800px;          /* बहुत लंबा text ना फैले */
+  margin: 0 auto;            /* center align */
+  color: #333;               /* readable dark grey */
+  text-align: left;
+}
+
+
+#about img,
+#services img,
+#pricing img,
+#commission img {
+  width: 100px;              /* size fix karne ke liye (apni need ke hisab se change kar sakte ho) */
+  height: 100px;             /* same width & height rakhna जरूरी है circle ke liye */
+  object-fit: cover;         /* image ko crop karke fit karega */
+  border-radius: 50%;        /* circle banayega */
+  display: block;
+  margin: 20px auto;         /* center align */
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* halka shadow for effect */
+}
+
+
+
+/* Universal Button Style - FORCE APPLY */
+.btn,
+.book-demo a,
+.mobile-demo a,
+button,
+input[type="submit"],
+a.button {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 50px; /* pill shape */
+  background: linear-gradient(45deg, #4F2FD0, #2F5FD0) !important;
+  color: #fff !important;
+  font-weight: bold;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  border: none !important;
+  cursor: pointer;
+}
+
+/* Hover Effect - FORCE APPLY */
+.btn:hover,
+.book-demo a:hover,
+.mobile-demo a:hover,
+button:hover,
+input[type="submit"]:hover,
+a.button:hover {
+  background: linear-gradient(45deg, #ee0979, #ff6a00) !important;
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+  color: #fff !important;
+}
+
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: url("images/bg.jpg") no-repeat center center fixed; 
+  background-size: cover;  /* image stretch होकर screen cover करेगी */
+}
+
+
+
+.hero {
+  background: url("images/hero1-bg.jpg") no-repeat center center;
+  background-size: cover;
+  color: black;          /* ताकि text clear दिखे */
+  padding: 80px 20px;
+  text-align: center;
+}
+
+
+.main-menu ul li a {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  text-decoration: none;
+  color: black;
+  transition: all 0.3s ease;
+}
+
+/* Force Gradient on Hover */
+.main-menu ul li a:hover {
+  color: #fff !important;
+  background: linear-gradient(45deg, #ee0979, #ff6a00) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+}
+
+/*table Card */
+.card {
+  background: #fff;
+  border-radius: 50px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 20px;
+  margin: 20px auto;
+  width: 100%;         /* container ke andar 95% width lega */
+  max-width: 2500px;  /* jyada bada na ho */
+  overflow-x: auto;   /* agar data jyada ho to scroll aa jaye */
+  min-height: 350px;
+}
+
+/*Header */
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* left = brand , right = button */
+  padding: 15px 20px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 0 auto;   /* center align */
+  text-align: center;
+}
+
+.side-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.side-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.right-btn {
+  margin-left: auto; /* refresh button ko right side push karega */
+}
+
+
+
+
+
+
+
+.controls {
+  display: flex;
+  justify-content: center; /* Pure container ko center align karega */
+  align-items: center;     /* Vertical center */
+  flex-wrap: wrap;         /* Chhoti screen pe wrap ho jayega */
+  gap: 10px;               /* Items ke beech gap */
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.controls .search input {
+  padding: 8px 10px;
+  border: 0px solid #ccc;
+  border-radius: 50px;
+  width: 220px;
+}
+
+.controls select,
+.controls button {
+  padding: 8px 12px;
+  border-radius: 50px;
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+  cursor: pointer;
+}
+
+.controls button {
+  background: #007bff;
+  color: #fff;
+  border: none;
+}
+
+.controls button:hover {
+  background: #0056b3;
+}
+
+
+.btn-yellow {
+  background-color: #ffcc00;
+  color: #000;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.btn-yellow:hover {
+  background-color: #e6b800;
+}
+
+
+
+
+/* Overlay background */
+.modal {
+  display: none; 
+  position: fixed; 
+  z-index: 9999;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+  justify-content: center; 
+  align-items: center;
+}
+
+/* Modal Box */
+.modal-content {
+  background: #fff;
+  width: 600px;
+  max-width: 90%;
+  border-radius: 50px;
+  padding: 25px 30px;
+  box-shadow: 0px 10px 25px rgba(0,0,0,0.25);
+  font-family: "Poppins", sans-serif;
+  position: relative;
+  animation: zoomIn 0.3s ease-out;
+}
+
+/* Close Button */
+.modal-close {
+  position: absolute;
+  top: 12px; right: 18px;
+  font-size: 26px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #444;
+  transition: 0.2s;
+}
+.modal-close:hover { color: #e63946; }
+
+/* Title */
+.modal-title {
+  margin: 0 0 15px 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #007bff;
+  text-align: center;
+}
+
+/* Body */
+.modal-body {
+  font-size: 15px;
+  color: #333;
+  line-height: 1.5;
+  margin-bottom: 15px;
+}
+
+/* Progress Bar */
+.progress-bar {
+  background: #eee;
+  border-radius: 50px;
+  overflow: hidden;
+  height: 24px;
+}
+#progressBar {
+  width: 0%;
+  background: linear-gradient(135deg, #1e90ff, #007bff);
+  color: #fff;
+  text-align: center;
+  font-size: 13px;
+  padding: 3px 0;
+  transition: width 0.4s ease;
+}
+
+/* Actions */
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-around;
+  gap: 10px;
+}
+
+/* Buttons */
+.btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 50px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.btn-green   { background: #2ecc71; color: white; }
+.btn-yellow  { background: #f1c40f; color: black; }
+.btn-red     { background: #e74c3c; color: white; }
+.btn-accent  { background: #007bff; color: white; }
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Animation */
+@keyframes zoomIn {
+  from { transform: scale(0.7); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+#totalAmountBox {
+  width: 100px;              /* box ka width chhota kar do */
+  height: 40px;             /* box ka height fix */
+  display: flex;            /* flex lagao */
+  justify-content: center;  /* horizontal center */
+  align-items: center;      /* vertical center */
+  font-weight: bold;        /* bold text */
+  border-radius: 50px;       /* rounded corners */
+  border: 1px solid #ccc;   /* border color */
+  font-size: 14px;          /* font size */
+  padding: 0;               /* padding hatao */
+  box-sizing: border-box;   /* border + padding include ho jaye */
+  text-align: center;       /* fallback, horizontal center ke liye */
+}
+
+
+#totalCountBox {
+  width: 50px;              /* box ka width chhota kar do */
+  height: 40px;             /* box ka height fix */
+  display: flex;            /* flex lagao */
+  justify-content: center;  /* horizontal center */
+  align-items: center;      /* vertical center */
+  font-weight: bold;        /* bold text */
+  border-radius: 50px;       /* rounded corners */
+  border: 1px solid #ccc;   /* border color */
+  font-size: 14px;          /* font size */
+  padding: 0;               /* padding hatao */
+  box-sizing: border-box;   /* border + padding include ho jaye */
+  text-align: center;       /* fallback, horizontal center ke liye */
+}
+
+
+
+
+
+
+
+
+  </style>
+</head>
+<body>
+
+
+<!-- ========= TOP MARQUEE ========= -->
+  <div class="top-marquee">
+    <marquee behavior="scroll" direction="left" scrollamount="08">
+      🚀 EduFort Technologies | Smart Safety for Smarter Schools | Trusted Happy Clients | Years of Experience | No. of Users | Our Office | STUDENT SECURITY SYSTEMS | ERP SOFTWARE (SCHOOL & COLLEGES) | Many more
+    </marquee>
+  </div>
+
+  <!-- ========= HEADER ========= -->
+  <header class="site-header">
+    <div class="wrap navbar">
+      <a href="#" class="brand">
+        <img src="images/logo_circle.png" alt="EduFort Technologies" class="brand-img" />
+        <div class="brand-text">
+          <div class="brand-name">EduFORT Technologies</div>
+          <div class="brand-tagline">Smart Safety for Smarter Schools</div>
+        </div>
+      </a>
+
+      <div class="nav-holder">
+        <div class="spacer"></div>
+
+        <button id="nav-toggle" aria-label="Toggle menu">☰</button>
+
+        <nav id="nav" class="main-menu" aria-label="Main Navigation">
+          <ul>
+            <li><a href="index.html#home">Home</a></li>
+            <li><a href="index.html#about">About</a></li>
+
+            <li class="has-dropdown">
+              <a href="#">Services▾</a>
+              <ul class="dropdown">
+                <li><a href="student-security.html">Student Security System</a></li>
+                <li><a href="erp.html">ERP Software</a></li>
+                <li><a href="mobile-app.html">Mobile App</a></li>
+		<li><a href="transport.html">Transport Management System</a></li>
+                <li><a href="hostel.html">Hostel Management System</a></li>
+                <li><a href="user-login.html">User Login</a></li>
+              </ul>
+            </li>
+
+            <li><a href="index.html#technology">Technology</a></li>
+
+            <li class="has-dropdown">
+              <a href="#">Pricing▾</a>
+              <ul class="dropdown">
+                <li><a href="registration-plan.html">Registration Plan</a></li>
+                <li><a href="monthly-service.html">Monthly Service Plan</a></li>
+              </ul>
+            </li>
+
+            <li class="has-dropdown">
+              <a href="#">Commission▾</a>
+              <ul class="dropdown">
+                <li><a href="self-commission.html">Self Earn</a></li>
+                <li><a href="referral-commission.html">Referral Earn</a></li>
+              </ul>
+            </li>
+
+            <li><a href="index.html#promise">Promise</a></li>
+
+	    <li class="has-dropdown">
+              <a href="#">Team▾</a>
+              <ul class="dropdown">
+                <li><a href="team.html">Our Team</a></li>
+                <li><a href="investor.html">Our Client</a></li>
+              </ul>
+            </li>
+            
+            <li><a href="index.html#contact">Contact</a></li>
+
+            <!-- Mobile only Book Demo -->
+            <li class="mobile-demo"><a href="#contact" class="button">Book Demo</a></li>
+          </ul>
+        </nav>
+
+        <!-- Desktop Book Demo -->
+        <div class="book-demo">
+          <a href="https://forms.gle/NFucyyhHw7jjXs7x7" target="_blank" class="demo-btn button">Book Demo</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+
+
+ 
+  <div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="side-logo">
+        <img src="images/logo1.png" alt="EduFort Logo">
+      </div>
+      <div>
+        <h1>All Registration Details Dashboard</h1>
+        <p class="lead">Manage and Track All School Registrations in One Place</p>
+      </div>
+    </div>
+     
+  </header>
+</div>
+
+
+ <div class="controls">
+      <div class="search">
+        <input id="searchInput" placeholder="Search by name, registration id, mobile or txn id">
+      </div>
+      <div style="display:flex;gap:8px;">
+        <select id="statusFilter">
+          <option value="all">All status</option>
+          <option value="pending">Pending</option>
+          <option value="paid">Paid</option>
+          <option value="rejected">Rejected</option>
+        </select>
+	<select id="schoolFilter">
+  	  <option value="all">All Schools</option>
+	</select>
+	<input id="totalAmountBox" type="text" placeholder="" readonly>
+	<input id="totalCountBox" type="text" placeholder="" readonly>
+        <select id="perPage">
+	  <option value="5">5 rows</option>
+          <option value="10">10 rows</option>
+          <option value="25">25 rows</option>
+          <option value="50">50 rows</option>
+        </select>
+	<div class="pagination-card" style="display:flex; justify-content:center; align-items:center; gap:5px; margin-top:5px; padding:0px; border:1px solid #ddd; border-radius:50px; background:#f9f9f9;">
+  	 <button id="prevPage" class="btn">Prev</button>
+  	   <span id="pageInfo" style="font-weight:bold;">Page 1 of 5</span>
+  	 <button id="nextPage" class="btn">Next</button>
+	</div>
+	<button class="btn-primary" id="exportBtn">🔄Export CSV</button>
+        <button class="btn-primary" id="refreshBtn">Refresh</button>
+      </div>
+    </div>
+
+
+    <div class="card">
+      <table id="payoutTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Registration ID</th>
+            <th>Student ID</th>
+            <th>Name</th>
+	    <th>Roll No</th>
+	    <th>Standard</th>
+	    <th>Father's Name</th>
+            <th>Mobile</th>
+	    <th>School Name</th>
+	    <th>Amount</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="15" style="text-align:center; vertical-align:middle;">⏳ Please Wait Data is Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+	
+
+ <!-- ===== Modal Overlay ===== -->
+<div class="modal" id="detailModal">
+  <div class="modal-content">
+    <span class="modal-close" onclick="closeModal()">&times;</span>
+    <h2 class="modal-title">Details</h2>
+    
+    <!-- Modal Body Data -->
+    <div id="modalData" class="modal-body"></div>
+
+    <!-- Screenshot Preview -->
+    <div id="screenshotContainer" class="screenshot-card" style="display:none;">
+      <h3 class="screenshot-title">Uploaded Screenshot</h3>
+      <img id="screenshotPreview" src="" alt="Uploaded Screenshot">
+    </div>
+
+    <!-- Progress Bar -->
+    <div id="progressContainer" style="display:none; margin-top:20px; text-align:center;">
+      <p id="progressText" style="margin-bottom:8px; font-weight:600; color:#e63946;">⏳ Updating Status...</p>
+      <div class="progress-bar">
+        <div id="progressBar">0%</div>
+      </div>
+    </div>
+
+    <!-- Modal Actions -->
+    <div class="modal-actions">
+      <button class="btn btn-green" id="markPaidBtn">✅ Paid</button>
+      <button class="btn btn-yellow" id="markPendingBtn">⏳ Pending</button>
+      <button class="btn btn-red" id="markRejectedBtn">❌ Rejected</button>
+      <button class="btn btn-accent" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Admin Login Modal -->
+<div class="modal" id="adminLoginModal">
+  <div class="modal-content" style="max-width:400px;text-align:center;">
+    <h2>EDUFORT TECHNOLOGIES</h2>
+    <h3>ADMIN LOGIN</h3>
+    <input type="text" id="adminId" placeholder="Admin ID" style="width:90%;padding:8px;margin:10px 0;"><br>
+    <div style="position:relative;">
+  <input type="password" id="adminPass" placeholder="Enter Password" style="width:90%;padding:8px;margin:10px;">
+  <span id="togglePass" 
+        style="position:absolute; right:18px; top:50%; transform:translateY(-50%); cursor:pointer;">
+  🔒
+  </span>
+</div>
+
+    <button class="btn-primary" onclick="checkAdminLogin()">Login</button>
+    <button class="btn-accent" onclick="closeAdminLogin()">Close</button>
+  </div>
+</div>
+
+
+<!-- ========= FOOTER ========= -->
+  <footer class="custom-footer section">
+    <div class="wrap">
+      <div class="footer-wrap">
+        <div class="footer-col footer-about">
+          <img src="images/logo_circle.png" alt="EduFort Logo" class="footer-logo">
+          <p><strong>Smart Safety for Smarter Schools</strong><br>We help institutes to transform into a truly smart institute with 25+ modules.</p>
+        </div>
+
+        <div class="footer-col footer-contact">
+          <h3>Administrative Office</h3>
+          <p>Address: Krishna Rd, Near Goshala,<br>No 10 Basti, Golmuri, Jamshedpur,<br>Jharkhand, India - 831003.</p>
+          <p><strong>Call:</strong> +91 72948-96111</p>
+          <p><strong>Email:</strong> eduforttechjsr@gmail.com</p>
+          <p><strong>Website:</strong> eduforttechjsr.github.io/EduFortTech</p>
+        </div>
+
+        <div class="footer-col footer-links">
+          <h3>Links</h3>
+          <ul>
+            <li><a href="index.html#home">Home</a></li>
+            <li><a href="index.html#about">About Us</a></li>
+            <li><a href="index.html#services">Services</a></li>
+            <li><a href="index.html#technology">Technology</a></li>
+            <li><a href="index.html#pricing">Pricing</a></li>
+            <li><a href="index.html#commission">Commission</a></li>
+            <li><a href="index.html#promise">Promise</a></li>
+            <li><a href="index.html#team">Team</a></li>
+            <li><a href="index.html#contact">Contact</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col map-col">
+          <iframe src="https://www.google.com/maps/embed?pb=!4v1754944482584!6m8!1m7!1sDyPgdC5fVV2heuqmi5IojA!2m2!1d22.79722369232139!2d86.23023690430205!3f126.99560375018677!4f4.420471360469946!5f0.7820865974627469" loading="lazy" allowfullscreen></iframe>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>Copyright © EduFort Technologies | Powered by EduFort Technologies</p>
+      </div>
+    </div>
+  </footer>
+
+
+
+
+<script>
+/* ===== Fixed Payout Dashboard JS (Final Optimized + Screenshot + SMS) ===== */
+
+let rows = [];
+let currentRow = null;
+let selectedRowIndex = null;
+let isAdminMode = false;
+let isAdminLoggedIn = false; // 👈 Track admin login
+let currentPage = 1;
+
+/* ==== Format Timestamp ==== */
+function formatTimestamp(ts) {
+  if (!ts) return '-';
+  const date = new Date(ts);
+  if (isNaN(date.getTime())) return ts;
+  const day = date.getDate();
+  const suffix = (d => {
+    if (d > 3 && d < 21) return 'th';
+    switch (d % 10) {
+      case 1: return 'st'; case 2: return 'nd'; case 3: return 'rd'; default: return 'th';
+    }
+  })(day);
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2,'0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  return `${day}${suffix} ${months[date.getMonth()]}, ${date.getFullYear()} ${hours}:${minutes} ${ampm}`;
+}
+
+/* ==== Escape helpers ==== */
+function escapeHtml(v){ if(v==null) return ''; return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escapeCsv(v){ if(v==null) return ''; v=String(v); return (v.includes(',')||v.includes('"')||v.includes('\n'))? `"${v.replace(/"/g,'""')}"` : v; }
+
+/* ==== Normalize Headers ==== */
+function normalizeHeader(h){ return String(h||'').toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,''); }
+
+/* ==== Fetch Sheet Data ==== */
+async function fetchSheetData(sheetJsonUrl) {
+  const tbody = document.querySelector("#payoutTable tbody");
+  tbody.innerHTML = `<tr><td colspan="15" style="text-align:center;">⏳ Loading data...</td></tr>`;
+  currentPage = 1;
+
+  try {
+    const res = await fetch(sheetJsonUrl);
+    if (!res.ok) throw new Error(`Network error: ${res.status}`);
+    const json = await res.json();
+
+    rows = json.map(r => {
+      const normRow = {};
+      Object.keys(r).forEach(key => normRow[normalizeHeader(key)] = r[key]);
+      return {
+        timestamp: normRow['timestamp']||'',
+        registrationId: normRow['registrationid']||'',
+        studentId: normRow['studentid']||'',
+        name: normRow['studentname']||normRow['name']||'',
+        roll: normRow['rollno']||'',
+        standard: normRow['standard']||'',
+        session: normRow['session']||'',
+        fathersName: normRow['fathersname']||normRow['guardianname']||'',
+        mobile: normRow['mobileno']||normRow['mobilenumber']||'',
+        gender: normRow['gender']||'',
+        schoolName: normRow['schoolname']||'',
+        medium: normRow['medium']||'',
+        service: normRow['regservice']||'',
+        plan: normRow['regplan']||'',
+        amount: normRow['planamount']||'',
+        transactionId: normRow['upitransactionid']||'',
+        screenshot: normRow['screenshot']||'',
+        agreement: normRow['termsconditions']||'',
+        status: normRow['status']||'',
+      };
+    });
+
+    renderTable();
+    populateSchoolFilter();
+  } catch (err) {
+    console.error("❌ fetch error:", err);
+    tbody.innerHTML = `<tr><td colspan="15" style="text-align:center;color:red;">❌ Error loading data</td></tr>`;
+  }
+}
+
+/* ==== Populate School Filter ==== */
+function populateSchoolFilter() {
+  const schoolFilter = document.getElementById("schoolFilter");
+  if (!schoolFilter) return;
+  const schools = [...new Set(rows.map(r=>r.schoolName).filter(Boolean))].sort();
+  schoolFilter.innerHTML = `<option value="all">All Schools</option>`;
+  schools.forEach(s=>{const opt=document.createElement("option"); opt.value=s; opt.textContent=s; schoolFilter.appendChild(opt);});
+  schoolFilter.style.display = "inline-block";
+}
+
+/* ==== Filter ==== */
+function getFilteredList() {
+  const q=(document.getElementById("searchInput")?.value||'').toLowerCase().trim();
+  const status=(document.getElementById("statusFilter")?.value||'all');
+  const school=(document.getElementById("schoolFilter")?.value||'all');
+
+  return rows.filter(r=>{
+    const rStatus=String(r.status||'').toLowerCase();
+    const rSchool=String(r.schoolName||'').toLowerCase();
+    if(status!=="all" && rStatus!==status.toLowerCase()) return false;
+    if(school!=="all" && rSchool!==school.toLowerCase()) return false;
+    if(!q) return true;
+    return (
+      String(r.name||'').toLowerCase().includes(q) ||
+      String(r.registrationId||'').toLowerCase().includes(q) ||
+      String(r.studentId||'').toLowerCase().includes(q) ||
+      String(r.mobile||'').toLowerCase().includes(q) ||
+      String(r.transactionId||'').toLowerCase().includes(q) ||
+      String(r.roll||'').toLowerCase().includes(q) ||
+      String(r.standard||'').toLowerCase().includes(q) ||
+      String(r.fathersName||'').toLowerCase().includes(q) ||
+      rSchool.includes(q)
+    );
+  });
+}
+
+/* ==== Render Table ==== */
+function renderTable() {
+  const tbody=document.querySelector("#payoutTable tbody");
+  const per=Number(document.getElementById("perPage")?.value)||5;
+  const filteredAll=getFilteredList();
+  const totalItems=filteredAll.length;
+  const totalPages=Math.max(1, Math.ceil(totalItems/per));
+  if(currentPage>totalPages) currentPage=totalPages;
+  if(currentPage<1) currentPage=1;
+  const start=(currentPage-1)*per;
+  const pageRows=filteredAll.slice(start,start+per);
+  tbody.innerHTML="";
+
+  if(!pageRows.length){
+    tbody.innerHTML=`<tr><td colspan="15" style="text-align:center;">No data found</td></tr>`;
+  }else{
+    pageRows.forEach((r,i)=>{
+      const absIndex=start+i+1;
+      const idx=rows.indexOf(r);
+      const tr=document.createElement("tr");
+      tr.innerHTML=`
+        <td>${absIndex}</td>
+        <td>${escapeHtml(r.registrationId)}</td>
+        <td>${escapeHtml(r.studentId)}</td>
+        <td>${escapeHtml(r.name)}</td>
+        <td>${escapeHtml(r.roll)}</td>
+        <td>${escapeHtml(r.standard)}</td>
+        <td>${escapeHtml(r.fathersName)}</td>
+        <td>${escapeHtml(r.mobile||'_')}</td>
+        <td>${escapeHtml(r.schoolName)}</td>
+        <td>₹ ${escapeHtml(r.amount||'0')}</td>
+        <td><span class="tag ${(r.status||'').toLowerCase()}">${escapeHtml(r.status||'-')}</span></td>
+        <td>
+          <button class="btn-primary" onclick="openModal(${idx}, false)">View</button>
+          <button class="btn-accent" onclick="openAdminLogin(${idx})">Update</button>
+          <button class="btn-accent" onclick="downloadRowCSV(${idx})">CSV</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  document.getElementById("pageInfo").textContent=`Page ${currentPage} of ${totalPages}`;
+  document.getElementById("prevPage").disabled=currentPage<=1;
+  document.getElementById("nextPage").disabled=currentPage>=totalPages;
+}
+
+
+/* ==== SMS Messages ==== */
+function getStatusMessage(studentName, status){
+  switch(status){
+    case "Paid": return `Dear ${studentName}, your payment has been successfully received. Thank you!`;
+    case "Pending": return `Dear ${studentName}, your payment is still pending. Please complete it at the earliest.`;
+    case "Rejected": return `Dear ${studentName}, unfortunately your payment was rejected. Please try again or contact support.`;
+    default: return `Dear ${studentName}, your payment status is now ${status}.`;
+  }
+}
+
+/* ==== Update SMS Preview ==== */
+function updateSMSPreview(studentName, status){
+  const msg=getStatusMessage(studentName, status);
+  const el=document.getElementById("smsPreview");
+  if(el) el.textContent=msg;
+  return msg;
+}
+
+
+/* ==== Modal ==== */
+function openModal(index, adminMode = false) {
+  currentRow = rows[index];
+  if (!currentRow) return alert('Row not found');
+  isAdminMode = adminMode;
+  const modal = document.getElementById("detailModal");
+  const modalData = document.getElementById("modalData");
+
+ let screenshotHtml = '<em>No file uploaded</em>';
+
+if (currentRow.screenshot) {
+  let imgUrl = currentRow.screenshot;
+
+  // Agar =IMAGE(...) formula aaya hai to URL nikal lo
+  if (/^=IMAGE\(/i.test(imgUrl)) {
+    let match = imgUrl.match(/=IMAGE\(([^,]+),/i);
+    if (match && match[1]) {
+      imgUrl = match[1].replace(/"/g, '').trim();
+    }
+  }
+
+  // Sirf link show karna hai
+  screenshotHtml = `<a href="${imgUrl}" target="_blank">📎 View Screenshot</a>`;
+}
+
+
+  modalData.innerHTML = `
+    <p><strong>Timestamp:</strong> ${formatTimestamp(currentRow.timestamp)}</p>
+    <p><strong>Registration ID:</strong> ${escapeHtml(currentRow.registrationId)}</p>
+    <p><strong>Student ID:</strong> ${escapeHtml(currentRow.studentId)}</p>
+    <p><strong>Student Name:</strong> ${escapeHtml(currentRow.name)}</p>
+    <p><strong>Roll No:</strong> ${escapeHtml(currentRow.roll)}</p>
+    <p><strong>Standard:</strong> ${escapeHtml(currentRow.standard)}</p>
+    <p><strong>Session:</strong> ${escapeHtml(currentRow.session)}</p>
+    <p><strong>Father's Name:</strong> ${escapeHtml(currentRow.fathersName)}</p>
+    <p><strong>Mobile No:</strong> ${escapeHtml(currentRow.mobile)}</p>
+    <p><strong>Gender:</strong> ${escapeHtml(currentRow.gender)}</p>
+    <p><strong>School Name:</strong> ${escapeHtml(currentRow.schoolName)}</p>
+    <p><strong>Medium:</strong> ${escapeHtml(currentRow.medium)}</p>
+    <p><strong>Reg Service:</strong> ${escapeHtml(currentRow.service)}</p>
+    <p><strong>Reg Plan:</strong> ${escapeHtml(currentRow.plan)}</p>
+    <p><strong>Plan Amount:</strong> ₹ ${escapeHtml(currentRow.amount)}</p>
+    <p><strong>UPI Transaction ID:</strong> ${escapeHtml(currentRow.transactionId)}</p>
+    <p><strong>Upload Screenshot:</strong> ${screenshotHtml}</p>
+    <p><strong>Terms & Conditions:</strong> ${escapeHtml(currentRow.agreement)}</p>
+    <p><strong>Status:</strong> ${escapeHtml(currentRow.status)}</p>
+  `;
+
+  modal.style.display = "flex";
+
+  ["markPaidBtn", "markPendingBtn", "markRejectedBtn"].forEach(id => {
+    document.getElementById(id).style.display = adminMode ? "inline-block" : "none";
+  });
+
+  if (adminMode) {
+    document.getElementById("markPaidBtn").onclick = () => updateStatus(currentRow.registrationId, "Paid");
+    document.getElementById("markPendingBtn").onclick = () => updateStatus(currentRow.registrationId, "Pending");
+    document.getElementById("markRejectedBtn").onclick = () => updateStatus(currentRow.registrationId, "Rejected");
+  }
+}
+
+
+
+/* ==== Close Modal ==== */
+function closeModal(){ const m=document.getElementById("detailModal"); if(m) m.style.display="none"; }
+
+/* ==== Admin Login ==== */
+function openAdminLogin(index){ selectedRowIndex=index; document.getElementById("adminId").value=""; document.getElementById("adminPass").value=""; document.getElementById("adminLoginModal").style.display="flex"; }
+function closeAdminLogin(){ document.getElementById("adminLoginModal").style.display="none"; }
+function checkAdminLogin(){
+  const id=document.getElementById("adminId").value.trim();
+  const pass=document.getElementById("adminPass").value.trim();
+  const admins=[
+    {id:"edufort2025",pass:"tech2025"},
+    {id:"ADMIN",pass:"123456"},
+    {id:"VIVEK",pass:"1234"},
+    {id:"ADMIN123",pass:"admin123"}
+  ];
+  if(admins.some(a=>a.id===id && a.pass===pass)){ closeAdminLogin(); openModal(selectedRowIndex,true); }
+  else alert("❌ Invalid credentials");
+}
+
+/* ==== Update Status + SMS ==== */
+async function updateStatus(registrationId,newStatus){
+  const progressContainer=document.getElementById("progressContainer");
+  const progressBar=document.getElementById("progressBar");
+  if(progressContainer && progressBar){ progressContainer.style.display="block"; progressBar.style.width="0%"; progressBar.textContent="Updating..."; }
+
+  let progress=0;
+  const fakeProgress=setInterval(()=>{ if(progress<95 && progressBar){ progress+=5; progressBar.style.width=progress+"%"; progressBar.textContent=`Updating... ${progress}%`; } },200);
+
+  try{
+    // Call Google Apps Script doGet with sendSMS=true
+    const res=await fetch(`${UPDATE_URL}?registrationId=${encodeURIComponent(registrationId)}&status=${encodeURIComponent(newStatus)}&sendSMS=true`);
+    const result=await res.json();
+
+    clearInterval(fakeProgress);
+    if(progressBar){ progressBar.style.width="100%"; progressBar.textContent="✅ Updated"; }
+
+    setTimeout(()=>{
+      if(progressContainer) progressContainer.style.display="none";
+      if(result?.success){ 
+        alert(`✅ Status updated to ${newStatus} and SMS sent to client`);
+        closeModal(); 
+        fetchSheetData(WEB_APP_URL); 
+      }else{
+        alert(`⚠️ Status updated but SMS failed: ${result?.message||'Unknown error'}`);
+      }
+    },500);
+  }catch(err){
+    clearInterval(fakeProgress);
+    if(progressContainer) progressContainer.style.display="none";
+    console.error(err);
+    alert("⚠️ Error updating status. Please retry.");
+  }
+}
+
+
+/* ==== CSV Export ==== */
+function downloadRowCSV(index){
+  const r=rows[index]; if(!r) return alert("Row not found");
+  let csv="Registration ID,Student ID,Name,Mobile,Amount,Status\n";
+  csv+=`${escapeCsv(r.registrationId)},${escapeCsv(r.studentId)},${escapeCsv(r.name)},${escapeCsv(r.mobile)},${escapeCsv(r.amount)},${escapeCsv(r.status)}\n`;
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download=`${(r.name||'user').replace(/\s+/g,'_')}_payout.csv`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+function exportVisibleCSV(){
+  const data=getFilteredList(); if(!data.length) return alert("No data to export");
+  const headers=["Registration ID","Student ID","Name","Mobile","Amount","Status"];
+  const lines=[headers.join(",")];
+  data.forEach(r=>{ lines.push([r.registrationId,r.studentId,r.name,r.mobile,r.amount,r.status].map(escapeCsv).join(",")); });
+  const blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download="payout_export.csv"; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+/* ==== Init ==== */
+document.addEventListener('DOMContentLoaded', () => {
+  const toggleBtn = document.getElementById('togglePass');
+  const adminPass = document.getElementById('adminPass');
+  if (toggleBtn && adminPass) {
+    toggleBtn.addEventListener('click', () => {
+      adminPass.type = adminPass.type === 'password' ? 'text' : 'password';
+    });
+  }
+
+  const statusFilter = document.getElementById("statusFilter");
+  const schoolFilter = document.getElementById("schoolFilter");
+  const totalBox = document.getElementById("totalAmountBox");
+  const countBox = document.getElementById("totalCountBox"); // Optional: total record count
+
+  // Helper: Update Total Amount & Count
+  function updateTotal() {
+    if (!rows || rows.length === 0) {
+      totalBox.value = "₹ 0";
+      if (countBox) countBox.value = 0;
+      return;
+    }
+
+    const selectedStatus = statusFilter?.value || "all";
+    const selectedSchool = schoolFilter?.value || "all";
+    const searchTerm = document.getElementById("searchInput")?.value.toLowerCase() || "";
+
+    let filtered = rows;
+
+    // Filter by school
+    if (selectedSchool !== "all") {
+      filtered = filtered.filter(r => r.schoolName === selectedSchool);
+    }
+
+    // Filter by status
+    if (selectedStatus !== "all") {
+      filtered = filtered.filter(r => r.status.toLowerCase() === selectedStatus.toLowerCase());
+    }
+
+    // Filter by search term (Reg ID, Student ID, Name, etc.)
+    if (searchTerm) {
+      filtered = filtered.filter(r =>
+        (r.regId?.toLowerCase().includes(searchTerm)) ||
+        (r.studentId?.toLowerCase().includes(searchTerm)) ||
+        (r.name?.toLowerCase().includes(searchTerm))
+      );
+    }
+
+    // Calculate total
+    const total = filtered.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+    totalBox.value = total > 0 ? `₹ ${total}` : "₹ 0";
+
+    // Calculate total count
+    if (countBox) countBox.value = filtered.length;
+  }
+
+  // Override fetchSheetData to call updateTotal after data loads
+  const originalFetchSheetData = fetchSheetData;
+  fetchSheetData = function(url) {
+    return originalFetchSheetData(url).then(() => {
+      updateTotal(); // Update totals after data is fetched
+    });
+  };
+
+  // Initial data fetch
+  fetchSheetData(WEB_APP_URL);
+
+  // Event listeners for filters and search
+  ["searchInput", "statusFilter", "schoolFilter", "perPage"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    if (id === "searchInput") {
+      el.addEventListener("input", () => {
+        currentPage = 1;
+        renderTable();
+        updateTotal(); // ✅ search ke time bhi update
+      });
+    } else {
+      el.addEventListener("change", () => {
+        currentPage = 1;
+        renderTable();
+        updateTotal(); // ✅ filter/perPage change
+      });
+    }
+  });
+
+  // ✅ Next / Prev Buttons Logic
+  document.getElementById("prevPage")?.addEventListener("click", () => {
+    if(currentPage > 1){ currentPage--; renderTable(); updateTotal(); }
+  });
+
+  document.getElementById("nextPage")?.addEventListener("click", () => {
+    const per = Number(document.getElementById("perPage")?.value) || 5;
+    const filteredAll = getFilteredList();
+    const totalPages = Math.max(1, Math.ceil(filteredAll.length / per));
+    if(currentPage < totalPages){ currentPage++; renderTable(); updateTotal(); }
+  });
+
+  // Refresh & Export buttons
+  document.getElementById("refreshBtn")?.addEventListener("click", () => fetchSheetData(WEB_APP_URL));
+  document.getElementById("exportBtn")?.addEventListener("click", exportVisibleCSV);
+});
+
+
+
+
+const WEB_APP_URL= "https://script.google.com/macros/s/AKfycbxRTGVCxtU5URJsLtslBh3lORcR9wSfiQQvrsxIRO3sZbzwTcu1IZ4FZzX3bdYlgMTd/exec";
+const UPDATE_URL=WEB_APP_URL;
+</script>
+
+
+</body>
+</html>
